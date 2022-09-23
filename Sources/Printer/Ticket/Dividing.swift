@@ -21,10 +21,16 @@ extension Character: DividingPrivoider {
 /// add Dividing on receipt
 public struct Dividing: BlockDataProvider {
     
-    public let provider: DividingPrivoider
+    let provider: DividingPrivoider
     
-    public let printDensity: Int
-    public let fontDensity: Int
+    let printDensity: Int
+    let fontDensity: Int
+    
+    public init(provider: DividingPrivoider, printDensity: Int, fontDensity: Int) {
+        self.provider = provider
+        self.printDensity = printDensity
+        self.fontDensity = fontDensity
+    }
     
     static var `default`: Dividing {
         return Dividing(provider: Character("-"), printDensity: 384, fontDensity: 12)
