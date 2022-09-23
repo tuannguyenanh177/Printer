@@ -19,6 +19,10 @@ public struct Ticket {
         self.blocks = blocks
     }
     
+    public init(_ blocks: [Block]) {
+        self.blocks = blocks
+    }
+    
     public mutating func add(block: Block) {
         blocks.append(block)
     }
