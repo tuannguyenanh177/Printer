@@ -64,7 +64,11 @@ public extension Block {
     
     // key    value
     static func kv(k: String, v: String) -> Block {
-        return Block(Text.kv(k: k, v: v))
+      let keyValue = KeyValue(
+        key: Text(content: k, predefined: .bold),
+        value: Text(v)
+      )
+      return Block(keyValue)
     }
     
     // dividing

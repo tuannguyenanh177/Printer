@@ -87,7 +87,8 @@ public extension Text {
     static func title(_ content: String) -> Text {
         return Text(content: content, predefined: .scale(.l1), .alignment(.center))
     }
-    
+
+  /*
     static func kv(printDensity: Int = 384, fontDensity: Int = 12, k: String, v: String, attributes: [Attribute]? = nil) -> Text {
         
         var num = printDensity / fontDensity
@@ -109,5 +110,6 @@ public extension Text {
         
         return Text(contents.joined(), attributes: attributes)
     }
+   */
 }
 
