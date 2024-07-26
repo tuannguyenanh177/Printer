@@ -22,9 +22,9 @@ public struct Block: Printable {
 
     public static var defaultFeedPoints: UInt8 = 70
     
-    private let feedPoints: UInt8
-    private let dataProvider: BlockDataProvider
-    
+    public let feedPoints: UInt8
+    public let dataProvider: BlockDataProvider
+
     public init(_ dataProvider: BlockDataProvider, feedPoints: UInt8 = Block.defaultFeedPoints) {
         self.feedPoints = feedPoints
         self.dataProvider = dataProvider

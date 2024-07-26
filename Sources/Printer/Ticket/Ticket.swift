@@ -13,8 +13,8 @@ public struct Ticket {
     public var feedLinesOnTail: UInt8 = 3
     public var feedLinesOnHead: UInt8 = 0
     
-    private var blocks = [Block]()
-    
+    public var blocks = [Block]()
+
     public init(_ blocks: Block...) {
         self.blocks = blocks
     }

@@ -33,9 +33,9 @@ private extension CBPeripheral {
     }
 }
 
-public struct BluetoothPrinter {
+public struct BluetoothPrinter: Codable, Equatable {
 
-    public enum State {
+  public enum State: Codable {
 
         case disconnected
         case connecting
@@ -90,6 +90,7 @@ public class BluetoothPrinterManager {
     public weak var delegate: PrinterManagerDelegate?
 
     public var errorReport: ((PError) -> ())?
+    public var checkConnected: ((BluetoothPrinter) -> ())?
 
     private var connectTimer: Timer?
 
@@ -109,11 +110,11 @@ public class BluetoothPrinterManager {
     private func commonInit() {
 
         peripheralDelegate.wellDoneCanWriteData = { [weak self] in
-
+            let printer = BluetoothPrinter($0)
             self?.connectTimer?.invalidate()
             self?.connectTimer = nil
-
-            self?.nearbyPrinterDidChange(.update(BluetoothPrinter($0)))
+            self?.checkConnected?(printer)
+            self?.nearbyPrinterDidChange(.update(printer))
         }
 
         centralManagerDelegate.peripheralDelegate = peripheralDelegate
@@ -123,6 +124,7 @@ public class BluetoothPrinterManager {
             guard let printer = (self?.centralManagerDelegate[$0].map { BluetoothPrinter($0) }) else {
                 return
             }
+            self?.checkConnected?(printer)
             self?.nearbyPrinterDidChange(.add(printer))
         }
 
@@ -130,6 +132,7 @@ public class BluetoothPrinterManager {
             guard let printer = (self?.centralManagerDelegate[$0].map { BluetoothPrinter($0) }) else {
                 return
             }
+            self?.checkConnected?(printer)
             self?.nearbyPrinterDidChange(.update(printer))
         }
 
@@ -156,8 +159,9 @@ public class BluetoothPrinterManager {
             guard let `self` = self else {
                 return
             }
-
-            self.nearbyPrinterDidChange(.update(BluetoothPrinter(peripheral)))
+            let printer = BluetoothPrinter(peripheral)
+            self.checkConnected?(printer)
+            self.nearbyPrinterDidChange(.update(printer))
             self.peripheralDelegate.disconnect(peripheral)
         }
 
@@ -264,6 +268,10 @@ public class BluetoothPrinterManager {
         centralManager.retrieveConnectedPeripherals(withServices: serviceUUIDs).forEach {
             centralManager.cancelPeripheralConnection($0)
         }
+    }
+
+    public func autoConnectIds(ids: [String]) {
+        UserDefaults.standard.set(ids, forKey: BluetoothCentralManagerDelegate.UserDefaultKey.autoConectMultiUUID)
     }
 
     public var canPrint: Bool {

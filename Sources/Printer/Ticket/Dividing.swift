@@ -32,7 +32,7 @@ public struct Dividing: BlockDataProvider {
         self.fontDensity = fontDensity
     }
     
-    static var `default`: Dividing {
+    public static var `default`: Dividing {
         return Dividing(provider: Character("-"), printDensity: 384, fontDensity: 12)
     }
     
@@ -42,6 +42,11 @@ public struct Dividing: BlockDataProvider {
         let content = stride(from: 0, to: num, by: 1).map { String(provider.character(for: $0, total: num) ) }.joined()
         
         return Text(content).data(using: encoding)
+    }
+
+    public func content(count: Int? = nil) -> String {
+      let num = printDensity / fontDensity
+      return stride(from: 0, to: count ?? num, by: 1).map { String(provider.character(for: $0, total: num) ) }.joined()
     }
 }
 

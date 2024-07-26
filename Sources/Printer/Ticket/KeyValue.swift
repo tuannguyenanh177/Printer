@@ -1,6 +1,6 @@
 //
 //  KeyValue.swift
-//  
+//
 //
 //  Created by Tuan Nguyen Anh on 10/28/22.
 //
@@ -9,9 +9,9 @@ import Foundation
 
 public struct KeyValue: BlockDataProvider {
 
-  let key: Text
-  let space: Text
-  let value: Text
+  public let key: Text
+  public let space: Text
+  public let value: Text
 
   public init(key: Text, value: Text) {
     self.key = key

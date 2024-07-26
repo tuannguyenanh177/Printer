@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0A7713091DF905AE0009867F /* Printer.h in Headers */ = {isa = PBXBuildFile; fileRef = 0A7712FB1DF905AE0009867F /* Printer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		35C1F29C2C538DE300A05BEE /* KeyValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35C1F29B2C538DE300A05BEE /* KeyValue.swift */; };
 		5BD9B60222EE1B4900174ABA /* DummyPrinter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD9B5ED22EE1B4900174ABA /* DummyPrinter.swift */; };
 		5BD9B60322EE1B4900174ABA /* Todo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD9B5EF22EE1B4900174ABA /* Todo.swift */; };
 		5BD9B60422EE1B4900174ABA /* BluetoothPrinterSelectTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD9B5F122EE1B4900174ABA /* BluetoothPrinterSelectTableViewController.swift */; };
@@ -44,11 +45,12 @@
 		0A7712F81DF905AE0009867F /* Printer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Printer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0A7712FB1DF905AE0009867F /* Printer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Printer.h; sourceTree = "<group>"; };
 		0A7712FC1DF905AE0009867F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		35C1F29B2C538DE300A05BEE /* KeyValue.swift */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 2; lastKnownFileType = sourcecode.swift; path = KeyValue.swift; sourceTree = "<group>"; tabWidth = 2; };
 		5BD9B5ED22EE1B4900174ABA /* DummyPrinter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DummyPrinter.swift; sourceTree = "<group>"; };
 		5BD9B5EF22EE1B4900174ABA /* Todo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Todo.swift; sourceTree = "<group>"; };
 		5BD9B5F122EE1B4900174ABA /* BluetoothPrinterSelectTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothPrinterSelectTableViewController.swift; sourceTree = "<group>"; };
 		5BD9B5F222EE1B4900174ABA /* BluetoothCentralManagerDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothCentralManagerDelegate.swift; sourceTree = "<group>"; };
-		5BD9B5F322EE1B4900174ABA /* BluetoothPrinterManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothPrinterManager.swift; sourceTree = "<group>"; };
+		5BD9B5F322EE1B4900174ABA /* BluetoothPrinterManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = BluetoothPrinterManager.swift; sourceTree = "<group>"; tabWidth = 4; };
 		5BD9B5F422EE1B4900174ABA /* BluetoothPeripheralDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BluetoothPeripheralDelegate.swift; sourceTree = "<group>"; };
 		5BD9B5F622EE1B4900174ABA /* PrinterError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PrinterError.swift; sourceTree = "<group>"; };
 		5BD9B5F722EE1B4900174ABA /* Printable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Printable.swift; sourceTree = "<group>"; };
@@ -60,7 +62,7 @@
 		5BD9B5FE22EE1B4900174ABA /* Image.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Image.swift; sourceTree = "<group>"; };
 		5BD9B5FF22EE1B4900174ABA /* Ticket.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Ticket.swift; sourceTree = "<group>"; };
 		5BD9B60022EE1B4900174ABA /* QRCode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QRCode.swift; sourceTree = "<group>"; };
-		5BD9B60122EE1B4900174ABA /* Text.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Text.swift; sourceTree = "<group>"; };
+		5BD9B60122EE1B4900174ABA /* Text.swift */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.swift; path = Text.swift; sourceTree = "<group>"; tabWidth = 4; };
 		F11A018A2719F1C2005F0353 /* PrinterTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PrinterTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F11A018C2719F1C2005F0353 /* PrinterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrinterTests.swift; sourceTree = "<group>"; };
 		F11A018E2719F1C2005F0353 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -96,7 +98,9 @@
 				F11A01952719F1D7005F0353 /* Tests */,
 				0A7712F91DF905AE0009867F /* Products */,
 			);
+			indentWidth = 2;
 			sourceTree = "<group>";
+			tabWidth = 2;
 		};
 		0A7712F91DF905AE0009867F /* Products */ = {
 			isa = PBXGroup;
@@ -191,6 +195,7 @@
 		5BD9B61622EE1B9C00174ABA /* Block */ = {
 			isa = PBXGroup;
 			children = (
+				35C1F29B2C538DE300A05BEE /* KeyValue.swift */,
 				5BD9B5FD22EE1B4900174ABA /* Block.swift */,
 				5BD9B5FB22EE1B4900174ABA /* Blank.swift */,
 				5BD9B5F922EE1B4900174ABA /* Dividing.swift */,
@@ -344,6 +349,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5BD9B60422EE1B4900174ABA /* BluetoothPrinterSelectTableViewController.swift in Sources */,
+				35C1F29C2C538DE300A05BEE /* KeyValue.swift in Sources */,
 				5BD9B60622EE1B4900174ABA /* BluetoothPrinterManager.swift in Sources */,
 				5BD9B60E22EE1B4900174ABA /* Block.swift in Sources */,
 				5BD9B60A22EE1B4900174ABA /* Dividing.swift in Sources */,
