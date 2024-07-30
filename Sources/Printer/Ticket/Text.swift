@@ -10,10 +10,10 @@ import UIKit
 
 public struct Text: BlockDataProvider {
     
-    let content: String
-    let attributes: [Attribute]?
-    
-    public init(_ content: String, attributes: [Attribute]? = nil) {
+    public let content: String
+    public let attributes: [PredefinedAttribute]?
+
+    public init(_ content: String, attributes: [PredefinedAttribute]? = nil) {
         self.content = content
         self.attributes = attributes
     }

@@ -9,8 +9,8 @@ import UIKit
 
 public struct TicketImage: BlockDataProvider {
     
-    private let image: Image
-    private let attributes: [Attribute]?
+    public let image: Image
+    let attributes: [Attribute]?
     
     public init(_ image: Image, attributes: [Attribute]? = nil) {
         self.image = image

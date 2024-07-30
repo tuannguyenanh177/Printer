@@ -8,8 +8,8 @@
 
 import Foundation
 
-struct Blank: BlockDataProvider {
-    func data(using encoding: String.Encoding) -> Data {
+public struct Blank: BlockDataProvider {
+    public func data(using encoding: String.Encoding) -> Data {
         return Data()
     }
 }
