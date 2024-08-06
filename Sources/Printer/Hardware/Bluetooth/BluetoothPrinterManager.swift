@@ -85,7 +85,6 @@ public class BluetoothPrinterManager {
     private let centralManager: CBCentralManager
 
     private let centralManagerDelegate = BluetoothCentralManagerDelegate(BluetoothPrinterManager.specifiedServices)
-    private let peripheralDelegate = BluetoothPeripheralDelegate(BluetoothPrinterManager.specifiedServices, characteristics: BluetoothPrinterManager.specifiedCharacteristics)
 
     public weak var delegate: PrinterManagerDelegate?
 
@@ -109,15 +108,13 @@ public class BluetoothPrinterManager {
 
     private func commonInit() {
 
-        peripheralDelegate.wellDoneCanWriteData = { [weak self] in
+        centralManagerDelegate.wellDoneCanWriteData = { [weak self] in
             let printer = BluetoothPrinter($0)
             self?.connectTimer?.invalidate()
             self?.connectTimer = nil
             self?.checkConnected?(printer)
             self?.nearbyPrinterDidChange(.update(printer))
         }
-
-        centralManagerDelegate.peripheralDelegate = peripheralDelegate
 
         centralManagerDelegate.addedPeripherals = { [weak self] in
 
@@ -162,7 +159,6 @@ public class BluetoothPrinterManager {
             let printer = BluetoothPrinter(peripheral)
             self.checkConnected?(printer)
             self.nearbyPrinterDidChange(.update(printer))
-            self.peripheralDelegate.disconnect(peripheral)
         }
 
         centralManagerDelegate.centralManagerDidFailToConnectPeripheralWithError = { [weak self] _, _, err in
@@ -275,33 +271,52 @@ public class BluetoothPrinterManager {
     }
 
     public var canPrint: Bool {
-        if peripheralDelegate.writablecharacteristic == nil || peripheralDelegate.writablePeripheral == nil {
-            return false
-        } else {
-            return true
+        var check = false
+        if let uuids = UserDefaults.standard.object(forKey: BluetoothCentralManagerDelegate.UserDefaultKey.autoConectMultiUUID) as? [String] {
+            for uuid in uuids {
+                if let p = centralManagerDelegate.peripheralDelegate.first(where: { delegate in
+                    return delegate.writablePeripheral != nil && delegate.writablecharacteristic != nil && delegate.writablePeripheral?.identifier.uuidString == uuid
+                }) {
+                    check = true
+                }
+            }
+        }
+        return check
+    }
+
+    public func print(_ content: ESCPOSCommandsCreator, encoding: String.Encoding = String.GBEncoding.GB_18030_2000) {
+        if let uuids = UserDefaults.standard.object(forKey: BluetoothCentralManagerDelegate.UserDefaultKey.autoConectMultiUUID) as? [String] {
+            for uuid in uuids {
+                if let d = centralManagerDelegate.peripheralDelegate.first(where: { delegate in
+                    return delegate.writablePeripheral != nil && delegate.writablecharacteristic != nil && delegate.writablePeripheral?.identifier.uuidString == uuid
+                }) {
+                    guard let p = d.writablePeripheral, let c = d.writablecharacteristic else {
+                        return
+                    }
+                    for data in content.data(using: encoding) {
+                        p.writeValue(data, for: c, type: .withoutResponse)
+                    }
+                }
+            }
         }
     }
 
-    public func print(_ content: ESCPOSCommandsCreator, encoding: String.Encoding = String.GBEncoding.GB_18030_2000, completeBlock: ((PError?) -> ())? = nil) {
-
-        guard let p = peripheralDelegate.writablePeripheral, let c = peripheralDelegate.writablecharacteristic else {
-
-            completeBlock?(.deviceNotReady)
-            return
+    public func printTest(_ content: ESCPOSCommandsCreator, encoding: String.Encoding = String.GBEncoding.GB_18030_2000, uuid: String) {
+        if let d = centralManagerDelegate.peripheralDelegate.first(where: { delegate in
+            return delegate.writablePeripheral != nil && delegate.writablecharacteristic != nil && delegate.writablePeripheral?.identifier.uuidString == uuid
+        }) {
+            guard let p = d.writablePeripheral, let c = d.writablecharacteristic else {
+                return
+            }
+            for data in content.data(using: encoding) {
+                p.writeValue(data, for: c, type: .withoutResponse)
+            }
         }
-
-        for data in content.data(using: encoding) {
-
-            p.writeValue(data, for: c, type: .withoutResponse)
-        }
-
-        completeBlock?(nil)
     }
 
     deinit {
         connectTimer?.invalidate()
         connectTimer = nil
-
         disconnectAllPrinter()
     }
 }

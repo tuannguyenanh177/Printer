@@ -9,7 +9,7 @@
 import Foundation
 import CoreBluetooth
 
-class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate {
+class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {
   struct UserDefaultKey {
 
     static let autoConectUUID = "auto.connect.uuid"
@@ -18,7 +18,7 @@ class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate {
 
   private var services: Set<String>!
 
-  var peripheralDelegate: BluetoothPeripheralDelegate?
+  var peripheralDelegate: [BluetoothPeripheralDelegate] = []
 
   open var centralManagerDidUpdateState: ((CBCentralManager) -> ())?
   open var centralManagerDidDiscoverPeripheralWithAdvertisementDataAndRSSI: ((CBCentralManager, CBPeripheral, [String : Any], NSNumber) -> ())?
@@ -31,6 +31,8 @@ class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate {
   var addedPeripherals: PeripheralChangeBlock?
   var updatedPeripherals: PeripheralChangeBlock?
   var removedPeripherals: PeripheralChangeBlock?
+  var wellDoneCanWriteData: ((CBPeripheral) -> ())?
+  private let writablecharacteristicUUID = "BEF8D6C9-9C21-4C9E-B632-BD58C1009F9F"
 
   private(set) var discoveredPeripherals: [UUID: CBPeripheral] = [:]
   private let lock = NSLock()
@@ -74,9 +76,30 @@ class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate {
     let ss = services.map { CBUUID(string: $0) }
 
     // discover services for connected per.
-    central.retrieveConnectedPeripherals(withServices: ss).forEach {
-      $0.delegate = peripheralDelegate
-      $0.discoverServices(ss)
+    central.retrieveConnectedPeripherals(withServices: ss).forEach { peripheral in
+      connectPeripherals(peripheral: peripheral)
+    }
+  }
+
+  func connectPeripherals(peripheral: CBPeripheral) {
+    let ss = services.map { CBUUID(string: $0) }
+    if let index = peripheralDelegate.firstIndex(where: { ble in
+      ble.writablePeripheral?.identifier == peripheral.identifier
+    }) {
+      peripheralDelegate[index].wellDoneCanWriteData = { p in
+        self.wellDoneCanWriteData?(p)
+      }
+      peripheral.delegate = self
+      peripheral.discoverServices(ss)
+    } else {
+      let p = BluetoothPeripheralDelegate(BluetoothPrinterManager.specifiedServices, characteristics: BluetoothPrinterManager.specifiedCharacteristics)
+      p.wellDoneCanWriteData = { p in
+        self.wellDoneCanWriteData?(p)
+      }
+      p.writablePeripheral = peripheral
+      peripheralDelegate.append(p)
+      peripheral.delegate = self
+      peripheral.discoverServices(ss)
     }
   }
 
@@ -109,8 +132,7 @@ class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate {
 
   public func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
     centralManagerDidConnectPeripheral?(central, peripheral)
-    peripheral.delegate = peripheralDelegate
-    peripheral.discoverServices(services.map { CBUUID(string: $0) })
+    connectPeripherals(peripheral: peripheral)
   }
 
   public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -119,5 +141,31 @@ class BluetoothCentralManagerDelegate: NSObject, CBCentralManagerDelegate {
 
   public func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
     centralManagerDidDisConnectPeripheralWithError?(central, peripheral, error)
+  }
+
+  public func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+
+      guard error == nil else { return }
+
+      guard let prServices = peripheral.services else {
+          return
+      }
+
+      prServices.filter { services.contains($0.uuid.uuidString) }.forEach {
+          peripheral.discoverCharacteristics(nil, for: $0)
+      }
+  }
+
+  public func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+    if let index = peripheralDelegate.firstIndex(where: { ble in
+      ble.writablePeripheral?.identifier == peripheral.identifier
+    }) {
+      peripheralDelegate[index].writablePeripheral = peripheral
+      peripheralDelegate[index].writablecharacteristic = service.characteristics?.filter { $0.uuid.uuidString == writablecharacteristicUUID }.first
+    }
+  }
+
+  public func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+      print(characteristic)
   }
 }
