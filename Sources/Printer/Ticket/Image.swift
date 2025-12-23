@@ -13,23 +13,87 @@ public protocol Image {
 }
 
 extension Image {
-    
-    var ticketData: Data? {
-        
-        let width = ticketImage.width
-        let height = ticketImage.height
-        
-        if let grayData = convertImageToGray(ticketImage) {
-            // get binary data
-            if let binaryImageData = format_K_threshold(orgpixels: grayData, xsize: width, ysize: height) {
-                // each line prepare for printer
-                let data = eachLinePixToCmd(src: binaryImageData, nWidth: width, nHeight: height, nMode: 0)
-                return Data(bytes: data, count: height * (8 + width / 8))
-            }
-        }
-        return nil
+
+  var ticketData: Data? {
+    // Assuming ticketImage is a CGImage property available in your scope
+    let width = ticketImage.width
+    let height = ticketImage.height
+
+    if let grayData = convertImageToGray(ticketImage) {
+      // 1. Thresholding: Convert grayscale to 0s and 1s
+      if let binaryImageData = format_K_threshold(orgpixels: grayData, xsize: width, ysize: height) {
+
+        // 2. Convert to ESC/POS Commands
+        let data = eachLinePixToCmd(src: binaryImageData, nWidth: width, nHeight: height, nMode: 0)
+
+        // FIX: The final size is simply the count of the generated array.
+        // Manual count calculations often fail due to header bytes and padding.
+        return Data(data)
+      }
     }
-    
+    return nil
+  }
+
+  // ... convertImageToGray remains mostly the same, but ensure RGBA32 is defined ...
+
+  private func format_K_threshold(orgpixels: [UInt8], xsize: Int, ysize: Int) -> [UInt8]? {
+    var despixels = [UInt8]()
+    var graytotal: Int = 0
+
+    // Calculate average for dynamic thresholding
+    for pixel in orgpixels {
+      graytotal += Int(pixel)
+    }
+
+    let grayave = graytotal / (xsize * ysize)
+
+    // Binarize
+    for pixel in orgpixels {
+      // Printer logic: 1 is Black (ink), 0 is White (paper)
+      despixels.append(Int(pixel) > grayave ? 0 : 1)
+    }
+    return despixels
+  }
+
+  private func eachLinePixToCmd(src: [UInt8], nWidth: Int, nHeight: Int, nMode: Int) -> [UInt8] {
+    var result = [UInt8]()
+    let nBytesPerLine = (nWidth + 7) / 8
+
+    for y in 0..<nHeight {
+      // 1. Add Line Header (ESC/POS: GS v 0 ...)
+      // xl/xH are width in bytes, yl/yH are height in dots (set to 1 dot high per command)
+      let header = ESC_POSCommand.beginPrintImage(
+        xl: UInt8(nBytesPerLine & 0xff),
+        xH: UInt8((nBytesPerLine >> 8) & 0xff),
+        yl: UInt8(1),
+        yH: UInt8(0)
+      ).rawValue
+      result.append(contentsOf: header)
+
+      // 2. Pack bits for this specific row
+      for byteIndex in 0..<nBytesPerLine {
+        var currentByte: UInt8 = 0
+
+        for bitIndex in 0..<8 {
+          let pixelX = (byteIndex * 8) + bitIndex
+
+          // Boundary Check: If width is 300, pixelX 300-303 will be ignored (padded white)
+          if pixelX < nWidth {
+            let srcIndex = (y * nWidth) + pixelX
+            if src[srcIndex] == 1 {
+              // Set bit (7 is leftmost bit, 0 is rightmost)
+              currentByte |= (1 << (7 - bitIndex))
+            }
+          }
+        }
+        result.append(currentByte)
+      }
+    }
+    return result
+  }
+}
+
+extension Image {
     private func convertImageToGray(_ inputCGImage: CGImage) -> [UInt8]? {
         
         let kRed: Int = 1
@@ -92,66 +156,6 @@ extension Image {
         //let outputImage = UIImage(cgImage: outputCGImage, scale: (i?.scale)!, orientation: (i?.imageOrientation)!)
         return m_imageData
     }
-    
-    private func format_K_threshold(orgpixels: [UInt8], xsize: Int, ysize: Int) -> [UInt8]? {
-        var despixels = [UInt8]()
-        var graytotal: Int = 0
-        var k: Int = 0
-        
-        var gray: Int
-        for _ in 0..<ysize {
-            for _ in 0..<xsize {
-                gray = Int(orgpixels[k]) & 255
-                graytotal += gray
-                k += 1
-            }
-        }
-        
-        let grayave: Int = graytotal / ysize / xsize
-        k = 0
-        
-        for _ in 0..<ysize {
-            for _ in 0..<xsize {
-                gray = Int(orgpixels[k]) & 255
-                if gray > grayave {
-                    despixels.append(UInt8(0))
-                } else {
-                    despixels.append(UInt8(1))
-                }
-                k += 1
-            }
-        }
-        return despixels
-    }
-    
-    private func eachLinePixToCmd(src: [UInt8], nWidth: Int, nHeight: Int, nMode: Int) -> [UInt8] {
-        var data = [[UInt8]]()
-        
-        let p0 = [0, 0x80]
-        let p1 = [0, 0x40]
-        let p2 = [0, 0x20]
-        let p3 = [0, 0x10]
-        let p4 = [0, 0x08]
-        let p5 = [0, 0x04]
-        let p6 = [0, 0x02]
-        
-        let nBytesPerLine: Int = (nWidth + 7) / 8
-        var k: Int = 0
-        
-        for _ in 0..<nHeight {
-            data.append(ESC_POSCommand.beginPrintImage(xl: UInt8(nBytesPerLine % 0xff), xH: UInt8(nBytesPerLine / 0xff), yl: UInt8(1), yH: UInt8(0)).rawValue)
-            
-            var bytes = [UInt8]()
-            for _ in 0..<nBytesPerLine {
-                bytes.append(UInt8(p0[Int(src[k])] + p1[Int(src[k + 1])] + p2[Int(src[k + 2])] + p3[Int(src[k + 3])] + p4[Int(src[k + 4])] + p5[Int(src[k + 5])] + p6[Int(src[k + 6])] + Int(src[k + 7])))
-                k = k + 8
-            }
-            data.append(bytes)
-        }
-        let rdata: [UInt8] = data.flatMap { $0 }
-        return rdata
-    }
-    
 }
 
 private struct RGBA32: Equatable {
